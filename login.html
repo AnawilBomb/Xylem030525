@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เข้าสู่ระบบ | Xylem</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+      100% { transform: translateY(0px); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(-45deg, #1A1F2E, #283045, #1e2438, #2c3756);
+      background-size: 400% 400%;
+      animation: gradient 15s ease infinite;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .background-shapes {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .shape {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 50%;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .shape:nth-child(1) {
+      width: 300px;
+      height: 300px;
+      top: -150px;
+      right: -150px;
+    }
+
+    .shape:nth-child(2) {
+      width: 200px;
+      height: 200px;
+      bottom: -100px;
+      left: -100px;
+      animation-delay: -2s;
+    }
+
+    .shape:nth-child(3) {
+      width: 150px;
+      height: 150px;
+      bottom: 50%;
+      right: -75px;
+      animation-delay: -4s;
+    }
+
+    .login-container {
+      background: rgba(40, 48, 69, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      width: 400px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+      position: relative;
+      z-index: 2;
+      animation: fadeIn 1s ease-out;
+    }
+
+    .logo-container {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #4A5475, #3D465E);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .logo span {
+      font-size: 32px;
+      color: white;
+      font-weight: bold;
+    }
+
+    h1 {
+      text-align: center;
+      color: #ffffff;
+      margin-bottom: 30px;
+      font-weight: 600;
+      font-size: 28px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+      position: relative;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #ffffff;
+      font-size: 14px;
+      transform: translateY(0);
+      transition: all 0.3s;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      background: rgba(61, 70, 94, 0.6);
+      color: #ffffff;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #4A5475;
+      background: rgba(74, 84, 117, 0.4);
+      box-shadow: 0 0 20px rgba(74, 84, 117, 0.3);
+    }
+
+    .form-group:focus-within label {
+      transform: translateY(-2px);
+      color: #8E99B4;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4A5475, #3D465E);
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: rgba(255, 255, 255, 0.1);
+      transform: rotate(45deg);
+      transition: all 0.3s;
+    }
+
+    button:hover::after {
+      transform: rotate(45deg) translateY(50%);
+    }
+
+    .error-message {
+      color: #FF8A8A;
+      margin-top: 15px;
+      text-align: center;
+      display: none;
+      font-size: 14px;
+      padding: 12px;
+      background: rgba(220, 53, 69, 0.1);
+      border-radius: 8px;
+      backdrop-filter: blur(5px);
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @media (max-width: 480px) {
+      .login-container {
+        width: 90%;
+        padding: 30px;
+      }
+    }
+   </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>เข้าสู่ระบบ</h1>
+    <div id="error-message" class="error-message"></div>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="username">ชื่อผู้ใช้</label>
+        <input type="text" id="username" name="username" required>
+      </div>
+      <div class="form-group">
+        <label for="password">รหัสผ่าน</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+      <button type="submit">เข้าสู่ระบบ</button>
+    </form>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // ตรวจสอบว่ามีการล็อกอินอยู่แล้วหรือไม่
+      checkLoginStatus();
+      
+      const loginForm = document.getElementById('login-form');
+      const errorMessage = document.getElementById('error-message');
+      
+      loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        try {
+          const response = await fetch('/users/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password }),
+            credentials: 'include'
+          });
+          
+          const data = await response.json();
+          
+          if (data.login) {
+            // ล็อกอินสำเร็จ นำทางไปที่หน้าหลัก
+            window.location.href = '/home.html';
+          } else {
+            // แสดงข้อความผิดพลาด
+            errorMessage.textContent = data.message || 'เข้าสู่ระบบล้มเหลว';
+            errorMessage.style.display = 'block';
+          }
+        } catch (error) {
+          console.error('Login error:', error);
+          errorMessage.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+          errorMessage.style.display = 'block';
+        }
+      });
+      
+      // ฟังก์ชันตรวจสอบสถานะการล็อกอิน
+      async function checkLoginStatus() {
+        try {
+          const response = await fetch('/users/check-auth', {
+            method: 'GET',
+            credentials: 'include'
+          });
+          
+          const data = await response.json();
+          
+          if (data.authenticated) {
+            // ถ้าล็อกอินแล้ว ให้ไปหน้าหลัก
+            window.location.href = '/home.html';
+          }
+        } catch (error) {
+          console.error('Auth check error:', error);
+        }
+      }
+    });
+  </script>
+</body>
+</html>

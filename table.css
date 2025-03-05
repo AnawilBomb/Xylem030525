@@ -1,0 +1,166 @@
+/* General Table Display */
+.table-display {
+    overflow-x: auto; /* Enable horizontal scrolling for smaller screens */
+    margin-bottom: 20px; /* Spacing below the table */
+  }
+  
+  .table-display table {
+    width: 100%;
+    border-collapse: collapse; /* Remove spacing between cells */
+    margin-bottom: 15px;
+    background: var(--secondary-color); /* Use secondary color */
+    border-radius: 12px; /* More rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* More pronounced shadow */
+    overflow: hidden; /* Hide any content that overflows the rounded corners */
+  }
+  
+  .table-display th,
+  .table-display td {
+    padding: 14px 18px; /* Increased padding */
+    text-align: left;
+    border-bottom: 1px solid var(--secondary-hover-color); /* Subtle row separation */
+  }
+  
+  .table-display th {
+    font-weight: 600; /* Bold table headers */
+    background-color: var(--secondary-hover-color); /* Slightly darker header */
+    color: var(--text-color);
+    text-transform: uppercase; /* Make headers uppercase */
+    letter-spacing: 0.05em; /* Add a little letter spacing */
+  }
+  
+  .table-display tbody tr:hover {
+    background-color: var(--secondary-hover-color); /* Hover effect on rows */
+    transition: background-color 0.2s ease-in-out; /* Smooth transition on hover */
+  }
+  
+  .table-display tbody tr:last-child td {
+    border-bottom: none; /* Remove border from the last row */
+  }
+  
+  .table-display button {
+    padding: 8px 12px; /* Adjusted button padding */
+    background-color: var(--accent-color); /* Use accent color for buttons */
+    color: white;
+    border: none;
+    border-radius: 6px; /* Rounded button corners */
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Button shadow */
+  }
+  
+  .table-display button:hover {
+    background-color: #0264e3; /* Darker shade on hover */
+  }
+  
+  /* Style the "edit" mode */
+  .table-display tbody tr.edit-mode {
+    background-color: rgba(255, 255, 204, 0.5); /* Muted yellow background */
+  }
+  
+  /* Input Field Styles */
+  .table-display input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--secondary-hover-color); /* Subtle border */
+    border-radius: 4px;
+    background-color: var(--primary-color); /* Use primary color for input background */
+    color: var(--text-color);
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    font-size: 1rem;
+    outline: none; /* Remove default focus outline */
+    transition: border-color 0.2s ease-in-out; /* Smooth border transition */
+  }
+  
+  .table-display input[type="text"]:focus {
+    border-color: var(--accent-color); /* Highlight border on focus */
+    box-shadow: 0 0 5px rgba(30, 127, 253, 0.3); /* Add a glow effect on focus */
+  }
+  
+  /* Responsive Table (adjust as needed) */
+  @media (max-width: 768px) {
+    .table-display table {
+      font-size: 0.9rem; /* Smaller font on smaller screens */
+    }
+  
+    .table-display th,
+    .table-display td {
+      padding: 10px 12px; /* Reduced padding on smaller screens */
+    }
+  }
+  
+  /* Optional: zebra striping */
+  .table-display tbody tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.03); /* Very subtle background */
+  }
+  
+  /* More modern button style (optional) */
+  .table-display button {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .table-display button::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.2); /* Semi-transparent overlay */
+    opacity: 0;
+    transition: all 0.3s ease;
+    transform: translateX(-100%);
+  }
+  
+  .table-display button:hover::before {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  
+  /* Optional: Hover glow effect */
+  .table-display tbody tr:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+  }
+  
+  /* Optional: Make table borders a bit thinner and lighter */
+  .table-display th,
+  .table-display td {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Add a subtle border to the entire table (optional) */
+  .table-display table {
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Style even rows for better readability (optional) */
+  .table-display tbody tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.05); /* Very subtle background */
+  }
+  
+  /* Style for the "Add Row" button */
+  .plant-listing .plant-actions button {
+    /* More specific selector */
+    padding: 10px 16px;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    /* Add transform transition */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .plant-listing .plant-actions button:hover {
+    background-color: #0264e3;
+    transform: translateY(-2px);
+    /* Slight lift on hover */
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+    /* Enhance shadow on hover */
+    
+  }

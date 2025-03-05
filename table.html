@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Listeners Table</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Event Listeners Table</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ชื่อ Element (Event)</th>
+                <th>การทำงาน</th>
+                <th>Input ที่รับ</th>
+                <th>Output</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>promptForm (submit)</td>
+                <td>เมื่อฟอร์มถูกส่ง (submit) จะส่งข้อความใน promptInput ไปยังแชทบอทและเรียกให้บอทสร้างคำตอบ</td>
+                <td>e (Event): Event object ของการ submit ฟอร์ม</td>
+                <td>ป้องกันการ refresh หน้าเว็บ (จากการ submit ฟอร์มแบบ default), แสดงข้อความของผู้ใช้, เรียก generateResponse ใน script.js</td>
+            </tr>
+            <tr>
+                <td>fileInput (change)</td>
+                <td>เมื่อมีการเลือกไฟล์ จะอ่านไฟล์, แปลงเป็น Base64 string, และแสดงตัวอย่างไฟล์</td>
+                <td>e (Event): Event object ของการ change ค่าใน input file</td>
+                <td>แสดงตัวอย่างไฟล์, เก็บข้อมูลไฟล์ใน userData.file (ใน script.js)</td>
+            </tr>
+            <tr>
+                <td>#cancel-file-btn (click)</td>
+                <td>เมื่อคลิก จะยกเลิกการอัปโหลดไฟล์ (ล้างข้อมูลไฟล์และซ่อนตัวอย่าง)</td>
+                <td></td>
+                <td>ล้างข้อมูลไฟล์ใน userData.file (ใน script.js), ซ่อน file preview</td>
+            </tr>
+            <tr>
+                <td>#stop-response-btn (click)</td>
+                <td>เมื่อคลิก จะหยุดการตอบกลับของบอท (ยกเลิก API request)</td>
+                <td></td>
+                <td>เรียก controller.abort() (ใน script.js), หยุดเอฟเฟกต์การพิมพ์</td>
+            </tr>
+            <tr>
+                <td>#theme-toggle-btn (click)</td>
+                <td>เมื่อคลิก จะสลับธีมมืด/สว่าง</td>
+                <td></td>
+                <td>เปลี่ยน class ของ document.body เป็น light-theme หรือไม่, บันทึกธีมใน localStorage</td>
+            </tr>
+            <tr>
+                <td>#delete-chats-btn (click)</td>
+                <td>เมื่อคลิก จะลบข้อความแชททั้งหมด</td>
+                <td></td>
+                <td>ล้าง chatHistory (ใน script.js), ลบข้อความทั้งหมดใน chatsContainer</td>
+            </tr>
+            <tr>
+                <td>.suggestions-item (click)</td>
+                <td>เมื่อคลิกที่คำแนะนำ จะนำข้อความในคำแนะนำนั้นไปใส่ใน promptInput และ submit ฟอร์ม</td>
+                <td></td>
+                <td>ใส่ข้อความในคำแนะนำลงใน promptInput, submit ฟอร์ม</td>
+            </tr>
+            <tr>
+                <td>document (click) (delegate)</td>
+                <td>แสดง/ซ่อน control สำหรับมือถือเมื่อ promptInput โฟกัส หรือเมื่อคลิกที่ปุ่ม add/stop ในขณะที่ control ถูกซ่อนไว้</td>
+                <td>target (HTMLElement): Element ที่ถูกคลิก</td>
+                <td>แสดง/ซ่อน control บนมือถือ (เพิ่ม/ลบ class hide-controls จาก prompt-wrapper)</td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>

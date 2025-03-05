@@ -1,0 +1,633 @@
+/* home.css */
+
+/* Reset and General Styles (Keep These) */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Nunito Sans', sans-serif; /* Modern font */
+}
+
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f8f8f8;
+  color: #333;
+}
+
+/* REMOVE THIS - Causes issues. Overrides background image if set in body tag
+body {
+background-image: url("ffg.png");
+background-size: cover;
+background-repeat: no-repeat;
+background-attachment: fixed;
+}
+
+body::before {
+content: "";
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(255, 255, 255, 0.3);
+backdrop-filter: blur(5px);
+z-index: -1;
+}*/
+
+header {
+  background-color: #4CAF50; /* Green */
+  color: white;
+  text-align: center;
+  padding: 2em 0;
+}
+
+/* Hero Section */
+#hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 4em 0;
+  background-color: #fff;
+}
+
+.hero-image img {
+  max-width: 400px;
+  height: auto;
+}
+
+.hero-text {
+  max-width: 500px;
+}
+
+.cta-button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 1em 2em;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 5px;
+  display: inline-block;
+}
+
+/* Featured Section */
+#featured {
+  text-align: center;
+  padding: 4em 0;
+}
+
+.plant-grid {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2em;
+}
+
+.plant-card {
+  width: 300px;
+  background-color: #fff;
+  padding: 1.5em;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.plant-card img {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 1em;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 1em 0;
+  background-color: #ddd;
+}
+
+/* Animations */
+.hero-image img {
+  animation: subtleSway 5s infinite alternate ease-in-out;
+}
+
+.plant-card img {
+  transition: transform 0.3s ease;
+}
+
+.plant-card:hover img {
+  transform: scale(1.1); /* Slightly zoom in on hover */
+}
+
+@keyframes subtleSway {
+  0% {
+      transform: rotate(-2deg);
+  }
+  100% {
+      transform: rotate(2deg);
+  }
+}
+
+/* Color Palette*/
+
+:root {
+  --primary-color: #f8f8f8; /* Very light gray for a clean background */
+  --secondary-color: #fff; /* White for content containers */
+  --accent-color: #609966; /* Green for primary calls to action */
+  --text-color: #333; /* Dark gray for primary text */
+  --subtext-color: #777; /* Medium gray for secondary text */
+  --light-green: #d6eadf; /*  Light Green Used to accent */
+}
+
+
+body {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+}
+
+/* Typography (Modern, Clean) */
+h1, h2, h3 {
+  font-weight: 700; /* Bolder headings */
+  line-height: 1.2; /* Improved heading spacing */
+  color: #000000; /* Black text color */
+} 
+
+
+.logo {
+  width: 150px;        /* กำหนดขนาดโลโก้ */
+  height: auto;        /* รักษาอัตราส่วน */
+  margin-bottom: 1em;  /* เพิ่ม margin ด้านล่าง */
+  display: block;       /* ให้ logo แสดงเป็น block เพื่อจัด spacing ง่ายขึ้น */
+  margin-left: auto;   /* จัด logo ให้อยู่ตรงกลาง */
+  margin-right: auto;  /* จัด logo ให้อยู่ตรงกลาง */
+}
+
+
+.black-header {
+  font-family: 'Kanit', sans-serif; /* ตัวอย่าง: Kanit เป็น Font ไทยที่สวย */
+  font-weight: 800; /* ปรับความหนา */
+  line-height: 1.2;
+  font-size: 3.5em; /* ขยายขนาด */
+  color: black;
+  text-transform: uppercase; /* ทำให้เป็นตัวพิมพ์ใหญ่ทั้งหมด */
+  letter-spacing: 0.05em; /* เพิ่มระยะห่างตัวอักษรเล็กน้อย */
+
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@800&display=swap');
+
+p, a, li {
+  line-height: 1.5; /* Improved text spacing */
+}
+
+a {
+  color: var(--accent-color); /* Link color */
+  text-decoration: none; /* Remove underlines from links */
+  transition: color 0.3s ease; /* Smooth transition */
+}
+
+a:hover {
+  color: var(--text-color); /* Darken link color on hover */
+}
+
+/* Improved Navbar (Clearer and Lighter) */
+
+.navbar {
+  background-color: var(--light-green); /* Softer background color */
+  padding: 1em 2em;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+  position: sticky; /* Stick to top */
+  top: 0; /* Stick to the very top */
+  z-index: 100;
+}
+
+.navbar ul {
+  list-style: none;
+  display: flex;
+  justify-content: space-around; /* Distribute links evenly */
+  align-items: center;
+  margin: 0; /* Remove default ul margins */
+  padding: 0; /* Remove default ul padding */
+}
+
+.navbar li a {
+  display: block;
+  color: var(--text-color); /* Darker text color */
+  text-decoration: none;
+  font-weight: 600; /* Slightly bolder */
+  padding: 0.6em 1em;
+  border-radius: 0.4em;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar li a:hover {
+  background-color: var(--accent-color); /* Green accent on hover */
+  color: white;
+}
+
+/* Header (Clean and Inviting) */
+header {
+  background-color: transparent;
+  text-align: center;
+  padding: 4em 2em;
+}
+
+header h1 {
+  font-size: 3em; /* Smaller and modern font */
+  color: var(--text-color);
+}
+
+header p {
+  font-size: 1.2em;
+  color: var(--subtext-color); /* Subdued text color */
+  max-width: 700px; /* Limit paragraph width */
+  margin: 1em auto; /* Center the paragraph */
+}
+
+/* Hero Section (Softer and More Inviting) */
+#hero {
+  background-color: var(--secondary-color); /* white  background */
+  padding: 3em;
+  border-radius: 1em; /* More rounded corners */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+  display: flex;
+  align-items: center; /* Vertically center content */
+  justify-content: space-around; /* Distribute content horizontally */
+  margin: 2em; /* Add margin around hero */
+}
+
+#hero .hero-image img {
+  max-width: 400px; /* Responsive sizing of images */
+  height: auto;
+  border-radius: 0.5em;
+}
+
+#hero .hero-text {
+  max-width: 500px; /*  Content width of the hero section */
+}
+
+#hero h2 {
+  font-size: 2.2em; /* Title Size */
+  color: var(--text-color);
+  margin-bottom: 0.5em;
+}
+
+#hero p {
+  font-size: 1.1em; /* paragraph font size */
+  color: var(--subtext-color);
+  margin-bottom: 1.5em; /* spacing between text and call to action */
+}
+
+.cta-button {
+  background-color: var(--accent-color); /* Green */
+  color: white;
+  padding: 1em 2em;
+  text-decoration: none;
+  border-radius: 0.5em;
+  display: inline-block;
+  transition: background-color 0.3s ease;
+}
+
+.cta-button:hover {
+  background-color: var(--accent-color); /* Bright Green accent */
+}
+
+/* Plant Database Section */
+#featured {
+  text-align: center;
+  padding: 4em 2em; /* Add horizontal padding */
+}
+
+#featured h2 {
+  font-size: 2.5em;
+  margin-bottom: 1em;
+}
+
+.plant-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2em;
+}
+
+.plant-card {
+  background-color: var(--secondary-color); /* white */
+  border-radius: 0.8em;
+  width: 300px;
+  padding: 1.5em;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease; /* Smooth hover effect */
+  text-align: left;
+}
+
+.plant-card:hover {
+  transform: translateY(-0.5em);
+}
+
+.plant-card img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5em;
+  margin-bottom: 1em;
+}
+
+.plant-card h3 {
+  font-size: 1.4em;
+  margin-bottom: 0.5em;
+}
+
+.plant-card p {
+  font-size: 1em;
+  color: var(--subtext-color);
+  margin-bottom: 1em;
+}
+
+.plant-card a {
+  display: inline-block;
+  padding: 0.7em 1.2em;
+  background-color: var(--accent-color); /* Plant Green */
+  color: white;
+  text-decoration: none;
+  border-radius: 0.4em;
+  transition: background-color 0.3s ease;
+}
+
+.plant-card a:hover {
+  background-color: var(--accent-hover-color); /* Darker green on hover */
+}
+
+
+/* AI Chatbot Section  */
+#chatbot {
+  text-align: center;
+  padding: 4em 2em;
+  background-color: var(--light-green);
+  border-radius: 1em;
+  margin: 2em;
+}
+
+#chatbot h2 {
+  font-size: 2.5em;
+  margin-bottom: 0.5em;
+}
+
+#chatbot p {
+  font-size: 1.1em;
+  color: var(--subtext-color);
+  max-width: 700px;
+  margin: 0.5em auto 1.5em;
+}
+
+.chat-interface {
+  /* Add Styles for the chat interface */
+  border: 1px solid #ccc;
+  background-color: var(--secondary-color);
+  border-radius: 0.5em;
+  padding: 1em;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+/* Add this to ensure Font Awesome icons are displayed */
+footer i.fa {
+  font-family: 'Font Awesome 6 Brands';
+}
+
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 3em 0; /* Spacing to the top and bottom  */
+  background-color: #f2f2f2; /* Light Grey */
+  color: #666; /* Darker grey */
+  margin-top: 2em; /* Margin above the footer */
+}
+
+#care {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 4em 0;
+  background-color: #fff;
+}
+
+@media (max-width: 768px) {
+  #hero {
+      flex-direction: column;
+      align-items: center;
+  }
+
+  .hero-image img {
+      max-width: 100%; /* Make the image responsive */
+      height: auto;
+      margin-bottom: 1em; /* Add space between the image and the text */
+  }
+
+  .hero-text {
+      max-width: 100%; /* Take full width */
+      padding: 0 1em; /* Add some horizontal padding */
+      text-align: center; /* Center-align the text */
+  }
+
+  .plant-grid {
+      flex-direction: column; /* Stack the cards vertically */
+      align-items: center; /* center the cards */
+      padding: 0 1em; /* add horizontal padding for spacing */
+  }
+
+  #care {
+      flex-direction: column; /* Stack the cards vertically */
+      align-items: center; /* center the cards */
+      padding: 0 1em; /* add horizontal padding for spacing */
+  }
+
+  #plant-info .plant-search {
+      max-width: 600px; /* Slightly wider */
+      margin: 0 auto 2em;
+      display: flex;
+      align-items: center; /* Vertical alignment */
+      border: 1px solid #ccc; /* Subtle border */
+      border-radius: 2em; /* Pill-shaped */
+      overflow: hidden; /* Hide overflow for rounded corners */
+      transition: box-shadow 0.3s ease; /* Smooth shadow transition */
+  }
+
+  #plant-info .plant-search:focus-within {
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.15); /* Stronger shadow on focus */
+  }
+
+  #plant-info .plant-search input {
+      padding: 0.8em 1.2em;
+      border: none;
+      font-size: 1em;
+      width: 100%;
+      outline: none; /* Remove default focus outline */
+      background-color: transparent; /* Transparent background */
+      color: var(--text-color);
+  }
+
+  #plant-info .plant-search input::placeholder {
+      color: #aaa; /* Light gray placeholder */
+  }
+
+  #plant-info .plant-search button {
+      padding: 0.8em 1.5em;
+      background-color: var(--accent-color); /* Plant Green */
+      color: white;
+      border: none;
+      border-radius: 2em; /* Pill-shaped */
+      cursor: pointer;
+      font-weight: 600; /* Slightly bolder text */
+      transition: background-color 0.3s ease;
+      flex-shrink: 0; /* Prevent button from shrinking */
+      border-radius: 0.4em; /* Changed Corner Radius */
+  }
+
+  #plant-info .plant-search button:hover {
+      background-color: var(--accent-hover-color); /* Bright Green accent */
+  }
+}
+
+/* Sidebar Styles */
+#sidebar-container {
+  width: 250px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background-color: #f8f8f8;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  transform: translateX(-100%); /* Hide initially */
+  transition: transform 0.3s ease-in-out;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+#sidebar-container.show-sidebar {
+  transform: translateX(0); /* Show sidebar */
+}
+
+#sidebar-container a {
+  display: block;
+  padding: 10px 0;
+  color: #333;
+  text-decoration: none;
+}
+
+#sidebar-container a:hover {
+  color: #609966;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
+}
+
+.overlay.show-overlay {
+  display: block;
+}
+
+/* Plant Search Styles */
+#plant-info {
+  padding: 20px;
+  display: block;
+  text-align: left;
+}
+
+#plant-info .plant-search {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f2f2f2;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: fit-content;
+
+  margin: 0 auto 0 0; /* Align container to the LEFT */
+
+  /* OR ALTERNATIVELY: */
+   /* margin-right: auto; */
+}
+
+#plantSearchInput {
+    padding: 12px 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 300px;
+    margin-right: 10px;
+    font-size: 16px;
+    transition: border-color 0.3s;   /* Smooth transition on focus */
+    outline: none;                    /* Remove default outline */
+}
+
+#plantSearchInput:focus {
+    border-color: #66afe9;           /* Highlight border on focus */
+    box-shadow: 0 0 5px rgba(102, 175, 233, 0.5);
+}
+
+#plant-info button {
+    padding: 12px 20px;
+    background-color: #4CAF50;       /* Green button */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+#plant-info button:hover {
+    background-color: #45a049;       /* Darker green on hover */
+}
+
+/* Style for the "No results found" message (Example) */
+.no-results-message {
+    text-align: center;
+    font-style: italic;
+    color: #888;
+    margin-top: 10px;
+}
+
+/* Additional plant card styles */
+.plant-card {
+  display: flex;
+  flex-direction: column;
+  text-align: center;  /* Center the content */
+  align-items: center; /* Horizontally center items in the flex container */
+}
+
+.plant-card img {
+  max-width: 100%;
+  height: 200px; /* Fixed height */
+  object-fit: cover; /* Maintain aspect ratio and cover the area */
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.plant-card p {
+  flex-grow: 1; /* pushes the "ดูเพิ่มเติม" link to the bottom */
+  margin-bottom: 10px;
+
+}
+
+.plant-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+gap: 20px;
+padding: 20px;
+}
+
+@media (max-width: 768px) {
+.plant-grid {
+  grid-template-columns: 1fr; /* Single column on smaller screens */
+}
+}

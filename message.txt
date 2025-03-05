@@ -1,0 +1,285 @@
+import os
+import time
+import google.generativeai as genai
+from dotenv import load_dotenv
+from PyPDF2 import PdfReader
+import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
+from queue import Queue
+
+# Load environment variables
+load_dotenv()
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+class PDFDocument:
+    def __init__(self, path, name):
+        self.path = path
+        self.name = name
+        self.content = []
+        self.chunks = []
+        self.is_fully_read = False
+        self._content_lock = threading.Lock()
+        
+    def process_page(self, page_data):
+        """Process a single page of the PDF."""
+        page_num, page = page_data
+        text = page.extract_text()
+        
+        # Clean and preprocess the text
+        text = re.sub(r'\s+', ' ', text).strip()
+        
+        if text:
+            with self._content_lock:
+                self.content.append({
+                    'page': page_num + 1,
+                    'content': text,
+                    'document': self.name
+                })
+        
+        return page_num
+
+    def extract_content(self, max_workers=4):
+        """Extract and preprocess content from PDF with parallel processing."""
+        reader = PdfReader(self.path)
+        total_pages = len(reader.pages)
+        processed_pages = 0
+        
+        print(f"กำลังอ่าน {self.name}: {total_pages} หน้า...")
+        
+        # Create page data for parallel processing
+        page_data = [(i, reader.pages[i]) for i in range(total_pages)]
+        
+        # Process pages in parallel
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all pages for processing
+            future_to_page = {executor.submit(self.process_page, pd): pd[0] 
+                            for pd in page_data}
+            
+            # Process results as they complete
+            for future in as_completed(future_to_page):
+                processed_pages += 1
+                print(f"\rความคืบหน้า: {processed_pages}/{total_pages} หน้า", end="")
+        
+        # Sort content by page number
+        self.content.sort(key=lambda x: x['page'])
+        print(f"\nอ่าน {self.name} เสร็จสมบูรณ์")
+        
+        # Create chunks after all content is processed
+        self.chunks = self.create_chunks()
+        self.is_fully_read = True
+        return self.content
+
+    def create_chunks(self, chunk_size=1000, overlap=200):
+        """Split content into overlapping chunks while preserving page information."""
+        chunks = []
+        for page_content in self.content:
+            text = page_content['content']
+            page = page_content['page']
+            
+            if len(text) > chunk_size:
+                start = 0
+                while start < len(text):
+                    end = start + chunk_size
+                    if end > len(text):
+                        end = len(text)
+                    
+                    chunk = text[start:end]
+                    chunks.append({
+                        'content': chunk,
+                        'page': page,
+                        'document': self.name,
+                        'start_pos': start
+                    })
+                    
+                    start += (chunk_size - overlap)
+            else:
+                chunks.append({
+                    'content': text,
+                    'page': page,
+                    'document': self.name,
+                    'start_pos': 0
+                })
+        
+        return chunks
+
+def upload_to_gemini(path, mime_type=None):
+    """Upload a file to Gemini API."""
+    print(f"กำลังอัพโหลด {path}...")
+    file = genai.upload_file(path, mime_type=mime_type)
+    print(f"อัพโหลดไฟล์ '{file.display_name}' เรียบร้อยแล้ว: {file.uri}")
+    return file
+
+def wait_for_files_active(files):
+    """Wait for all files to be processed by Gemini API."""
+    print("กำลังรอการประมวลผลไฟล์...")
+    for name in (file.name for file in files):
+        file = genai.get_file(name)
+        while file.state.name == "PROCESSING":
+            print(".", end="", flush=True)
+            time.sleep(10)
+            file = genai.get_file(name)
+        if file.state.name != "ACTIVE":
+            raise Exception(f"ไฟล์ {file.name} ประมวลผลไม่สำเร็จ")
+    print("...ไฟล์ทั้งหมดพร้อมใช้งาน")
+    print()
+
+def parallel_process_documents(documents):
+    """Process multiple documents in parallel."""
+    with ThreadPoolExecutor() as executor:
+        # Start processing all documents
+        futures = [executor.submit(doc.extract_content) for doc in documents]
+        # Wait for all documents to complete
+        for future in as_completed(futures):
+            try:
+                future.result()
+            except Exception as e:
+                print(f"เกิดข้อผิดพลาดในการประมวลผลเอกสาร: {e}")
+
+def check_all_documents_ready(documents):
+    """Check if all documents are fully read."""
+    return all(doc.is_fully_read for doc in documents)
+
+def get_enhanced_system_instruction(documents):
+    """Create system instruction with awareness of multiple documents."""
+    docs_info = "\n".join([
+        f"- {doc.name}: {len(doc.content)} หน้า"
+        for doc in documents
+    ])
+    
+    return f"""
+    คำแนะนำสำหรับระบบ:
+    1. ตอบคำถามจากข้อมูลในเอกสารที่ให้มาเท่านั้น
+    2. ค้นหาข้อมูลจากทุกส่วนของเอกสาร รวมถึงหน้า 20 เป็นต้นไป(ทุกหน้าของเอกสาร)
+    3. ตอบเฉพาะสิ่งที่มีในเอกสารโดยตรง
+    4. หากค้นเอกสารทุกหน้าแล้วไม่พบข้อมูล, ให้แจ้งว่า "ขออภัย ขณะนี้ยังไม่มีข้อมูลของ (ตามด้วยคำถาม) " 
+    5. ห้ามสร้างหรือคิดข้อมูลขึ้นเอง
+    6. จากข้อที่4 หากพบข้อมูลในเอกสารอื่น ไม่ต้องแจ้งข้อ 4
+    7. ไม่ต้องตอบคำถาม แต่เสนอตัวเลือก Q&A (ระบุแค่หัวข้อ) หากได้รับคำถามที่กว้างไปเช่น "การปลูก","การดูแล" แต่ไม่ได้ระบุว่าปลูกหรือดูแลอะไร และตอบคำถามหลังผู้ใช้พิมพ์หนึ่งในตัวเลือกแล้ว
+    8. จากข้อ7 หากบทสนทนาก่อนหน้ามีการระบุแล้วว่า ปลูกหรือดูแลอะไรไม่ต้องเสนอ
+    9. รับข้อมูลให้ครบทุกหน้าก่อน ใช้ตอบคำถาม
+    10. เมื่อหาข้อมูลมาแล้ว เก็บข้อมูลไว้เพื่อใช้ตอบคำถาม จนกว่าจะจบการสนทนา 
+    11. เมือ่ตอบคำถามที่ไม่เข้าประเด็นข้อ 7 ให้ตอบแบบ เฉพาะเจาะจงหัวข้อนั้นๆที่โดนถาม
+    12. หากdecodeเนื้อหาไม่ได้ ให้ข้ามส่วนนั้นไป และนำคำที่ใกล้เคียงมาต่อ
+
+    เอกสารที่มีให้:
+    {docs_info}
+    """
+
+def init_chat(documents):
+    """Initialize chat with configuration and system instructions."""
+    generation_config = {
+        "temperature": 0.1,
+        "top_p": 0.1,
+        "top_k": 10,
+        "max_output_tokens": 2048,
+        "response_mime_type": "text/plain",
+    }
+
+    return genai.GenerativeModel(
+        model_name="gemini-2.0-flash-exp",
+        generation_config=generation_config,
+        system_instruction=get_enhanced_system_instruction(documents)
+    )
+
+def prepare_context_for_query(query, documents, max_chunks_per_doc=10):
+    """Prepare relevant context from all documents for the query."""
+    # Ensure all documents are fully read
+    if not check_all_documents_ready(documents):
+        return "กรุณารอให้การอ่านเอกสารเสร็จสมบูรณ์ก่อน"
+
+    all_relevant_chunks = []
+    query_keywords = set(query.lower().split())
+    
+    # Search in all documents
+    for doc in documents:
+        relevant_chunks = []
+        for chunk in doc.chunks:
+            chunk_text = chunk['content'].lower()
+            if any(keyword in chunk_text for keyword in query_keywords):
+                relevant_chunks.append(chunk)
+        
+        # Sort by page number to prioritize later pages
+        relevant_chunks.sort(key=lambda x: x['page'], reverse=True)
+        all_relevant_chunks.extend(relevant_chunks[:max_chunks_per_doc])
+    
+    # Prepare context string with document names and page numbers
+    context = "\n".join([
+        f"[{chunk['document']} หน้า {chunk['page']}]: {chunk['content']}"
+        for chunk in all_relevant_chunks
+    ])
+    
+    return context
+
+def main():
+    # Initialize documents
+    print("\nเริ่มต้นการอ่านเอกสาร PDF...")
+    documents = [
+        PDFDocument("Ku.pdf", "Ku"),
+        PDFDocument("Eto.pdf", "Eto")
+    ]
+    
+    # Process documents in parallel
+    parallel_process_documents(documents)
+    
+    # Upload files to Gemini
+    files = [
+        upload_to_gemini(doc.path, mime_type="application/pdf")
+        for doc in documents
+    ]
+    wait_for_files_active(files)
+    
+    print("\nพร้อมรับคำถามแล้ว!")
+    
+    while True:
+        history = []
+        model = init_chat(documents)
+        print("\nผู้ช่วย: สวัสดีครับ หากมีอะไรให้ช่วย ผมพร้อมให้บริการครับ")
+        print("พิมพ์ 'เริ่มใหม่' เพื่อเริ่มใหม่ หรือ 'ออก' เพื่อออกจากโปรแกรม")
+        
+        while True:
+            user_input = input("\nYou: ").strip().lower()
+            
+            if user_input == 'ออก':
+                print("ขอบคุณที่ใช้บริการ! ลาก่อนครับ")
+                return
+            
+            if user_input == 'เริ่มใหม่':
+                print("\nเริ่มการสนทนาใหม่...")
+                break
+            
+            try:
+                # Prepare relevant context from all documents
+                context = prepare_context_for_query(user_input, documents)
+                
+                if context == "กรุณารอให้การอ่านเอกสารเสร็จสมบูรณ์ก่อน":
+                    print("ผู้ช่วย: " + context)
+                    continue
+                
+                # Combine query with context
+                enhanced_query = f"""
+                คำถาม: {user_input}
+                
+                ข้อมูลที่เกี่ยวข้องจากเอกสาร:
+                {context}
+                
+                กรุณาตอบคำถามโดยใช้ข้อมูลข้างต้น และระบุแหล่งที่มาของข้อมูล (ชื่อเอกสารและหน้า)
+                """
+                
+                # Start chat session and send message with all files
+                chat_session = model.start_chat(history=history)
+                response = chat_session.send_message([enhanced_query] + files)
+                model_response = response.text
+                
+                print(f'ผู้ช่วย: {model_response}\n')
+                
+                # Update history
+                history.append({"role": "user", "parts": [user_input]})
+                history.append({"role": "model", "parts": [model_response]})
+                
+            except Exception as e:
+                print(f"เกิดข้อผิดพลาด: {e}")
+                print("ลองพิมพ์ 'เริ่มใหม่' เพื่อเริ่มใหม่ หรือ 'ออก' เพื่อออกจากโปรแกรม")
+
+if __name__ == "__main__":
+    main()
