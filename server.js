@@ -3,9 +3,11 @@ const path = require('path');
 const mysql = require('mysql2/promise');
 const multer = require('multer');
 const app = express();
-const jwt = require('jsonwebtoken'); // ต้องติดตั้ง jsonwebtoken ก่อน
-const cookieParser = require('cookie-parser'); // ต้องติดตั้ง cookie-parser ก่อน
-const bcrypt = require('bcrypt'); // ต้องติดตั้ง bcrypt ก่อน
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
+const { exec } = require('child_process');
+const fs = require('fs').promises;
 
 // MySQL Connection Pool
 const pool = mysql.createPool({
@@ -19,14 +21,14 @@ const pool = mysql.createPool({
     charset: 'utf8mb4'
 });
 
-// ค่า secret สำหรับ JWT
+// JWT Secret
 const jwtSecret = 'xylem-app-secret-2025';
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname))); // Serve static files from current directory
+app.use(express.static(path.join(__dirname)));
 
 // CORS Middleware
 app.use((req, res, next) => {
@@ -37,12 +39,12 @@ app.use((req, res, next) => {
     next();
 });
 
+// Authentication Routes
 app.post('/users/login', async (req, res) => {
     try {
         const { username, password } = req.body;
         const connection = await pool.getConnection();
         
-        // ค้นหาผู้ใช้งานจาก username
         const [users] = await connection.execute(
             'SELECT * FROM users WHERE username = ?',
             [username]
@@ -56,27 +58,18 @@ app.post('/users/login', async (req, res) => {
         
         const user = users[0];
         
-        // ตรวจสอบประเภทข้อมูลก่อนเปรียบเทียบ
         if (typeof password !== 'string' || typeof user.password !== 'string') {
-            console.log('Password types:', {
-                requestPassword: typeof password,
-                dbPassword: typeof user.password
-            });
-            // ถ้าไม่ใช่ string ให้ใช้วิธีเปรียบเทียบโดยตรง
             const passwordMatch = password == user.password;
             if (!passwordMatch) {
                 return res.json({ login: false, message: 'Invalid password' });
             }
         } else {
-            // ถ้าเป็น string ทั้งคู่ ให้ใช้ bcrypt
             try {
                 const passwordMatch = await bcrypt.compare(password, user.password);
                 if (!passwordMatch) {
                     return res.json({ login: false, message: 'Invalid password' });
                 }
             } catch (bcryptError) {
-                console.error('bcrypt error:', bcryptError);
-                // ถ้า bcrypt มีปัญหา ลองใช้วิธีเปรียบเทียบโดยตรง
                 const passwordMatch = password === user.password;
                 if (!passwordMatch) {
                     return res.json({ login: false, message: 'Invalid password' });
@@ -84,18 +77,16 @@ app.post('/users/login', async (req, res) => {
             }
         }
         
-        // สร้าง JWT token - ใช้เฉพาะข้อมูลที่มีอยู่จริง
         const token = jwt.sign(
             { id: user.user_id, username: user.username },
             jwtSecret,
             { expiresIn: '1d' }
         );
         
-        // ส่ง token กลับไปเก็บใน cookie
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            maxAge: 24 * 60 * 60 * 1000 // 1 วัน
+            maxAge: 24 * 60 * 60 * 1000
         });
         
         res.json({ login: true, message: 'Login successful' });
@@ -105,19 +96,16 @@ app.post('/users/login', async (req, res) => {
     }
 });
 
-// Route สำหรับ logout
 app.get('/users/logout', (req, res) => {
     res.clearCookie('token');
     res.json({ success: true, message: 'Logout successful' });
 });
 
-// Route สำหรับสมัครสมาชิกใหม่
 app.post('/users/register', async (req, res) => {
     try {
         const { username, password } = req.body;
         const connection = await pool.getConnection();
         
-        // ตรวจสอบว่ามี username ซ้ำหรือไม่
         const [existingUsers] = await connection.execute(
             'SELECT * FROM users WHERE username = ?',
             [username]
@@ -127,11 +115,10 @@ app.post('/users/register', async (req, res) => {
             connection.release();
             return res.status(400).json({ 
                 success: false, 
-                message: 'username already exists' 
+                message: 'Username already exists' 
             });
         }
         
-        // บันทึกข้อมูลสมาชิกใหม่
         const [result] = await connection.execute(
             'INSERT INTO users (username, password) VALUES (?, ?)',
             [username, password]
@@ -150,7 +137,7 @@ app.post('/users/register', async (req, res) => {
     }
 });
 
-// ตรวจสอบสถานะการล็อกอิน (middleware)
+// Authentication Middleware
 const authenticateUser = (req, res, next) => {
     const token = req.cookies.token;
     
@@ -168,26 +155,33 @@ const authenticateUser = (req, res, next) => {
     }
 };
 
-// Routes ที่ต้องการการยืนยันตัวตน
-app.get('/users/profile', authenticateUser, async (req, res) => {
-    try {
-        const connection = await pool.getConnection();
-        
-        const [users] = await connection.execute(
-            'SELECT user_id, username FROM users WHERE user_id = ?',
-            [req.user.id]
-        );
-        
-        connection.release();
-        
-        if (users.length === 0) {
-            return res.status(404).json({ error: 'User not found' });
+// Document Management
+const upload = multer({
+    storage: multer.memoryStorage(),
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'application/pdf') {
+            cb(null, true);
+        } else {
+            cb(new Error('Only PDF files are allowed'));
         }
-        
-        res.json({ user: users[0] });
-    } catch (error) {
-        console.error('Profile fetch error:', error);
-        res.status(500).json({ error: error.message });
+    },
+    limits: {
+        fileSize: 10 * 1024 * 1024 // 10MB limit
+    }
+});
+
+// Plant Image Upload Configuration
+const plantImageUpload = multer({
+    storage: multer.memoryStorage(),
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed'));
+        }
+    },
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit for images
     }
 });
 
@@ -282,91 +276,6 @@ app.post('/api/add-question', async (req, res) => {
     } catch (error) {
         console.error('Database error:', error);
         res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/api/get-plants', async (req, res) => {
-    try {
-        const connection = await pool.getConnection();
-        const [rows] = await connection.execute('SELECT * FROM plants ORDER BY plant_id DESC');
-        connection.release();
-        res.json(rows);
-    } catch (error) {
-        console.error('Database error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// UPDATE plant
-app.post('/api/update-plant', async (req, res) => {
-    try {
-        const { plant_id, plant_name, scientific_name, description } = req.body;
-        const connection = await pool.getConnection();
-        
-        await connection.execute(
-            'UPDATE plants SET plant_name = ?, scientific_name = ?, description = ? WHERE plant_id = ?',
-            [plant_name, scientific_name, description, plant_id]
-        );
-        
-        connection.release();
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Database error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// DELETE plant
-app.post('/api/delete-plant', async (req, res) => {
-    try {
-        const { plant_id } = req.body;
-        const connection = await pool.getConnection();
-        
-        await connection.execute('DELETE FROM plants WHERE plant_id = ?', [plant_id]);
-        
-        connection.release();
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Database error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// ADD new plant
-app.post('/api/add-plant', async (req, res) => {
-    try {
-        const { plant_name, scientific_name, description } = req.body;
-        const connection = await pool.getConnection();
-        
-        const [result] = await connection.execute(
-            'INSERT INTO plants (plant_name, scientific_name, description) VALUES (?, ?, ?)',
-            [plant_name, scientific_name, description]
-        );
-        
-        const [newPlant] = await connection.execute(
-            'SELECT * FROM plants WHERE plant_id = ?',
-            [result.insertId]
-        );
-        
-        connection.release();
-        res.json(newPlant[0]);
-    } catch (error) {
-        console.error('Database error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-const upload = multer({
-    storage: multer.memoryStorage(),
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype === 'application/pdf') {
-            cb(null, true);
-        } else {
-            cb(new Error('Only PDF files are allowed'));
-        }
-    },
-    limits: {
-        fileSize: 10 * 1024 * 1024 // 10MB limit
     }
 });
 
@@ -468,6 +377,235 @@ app.post('/api/delete-document', async (req, res) => {
     }
 });
 
+
+// Plant Management API Routes
+app.get('/api/get-plants', async (req, res) => {
+    try {
+        const connection = await pool.getConnection();
+        const [rows] = await connection.execute(
+            'SELECT plant_id, plant_name, scientific_name, description, image_mime_type FROM plants ORDER BY plant_name'
+        );
+        
+        // Add image_url property to each plant for frontend use
+        rows.forEach(plant => {
+            if (plant.image_mime_type) {
+                plant.image_url = `/api/get-plant-image/${plant.plant_id}`;
+            } else {
+                plant.image_url = null;
+            }
+        });
+        
+        connection.release();
+        res.json(rows);
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/add-plant', plantImageUpload.single('plantImage'), async (req, res) => {
+    try {
+        const { plant_name, scientific_name, description } = req.body;
+        const connection = await pool.getConnection();
+        
+        let imageData = null;
+        let imageMimeType = null;
+        
+        // Check if image file was uploaded
+        if (req.file) {
+            imageData = req.file.buffer;
+            imageMimeType = req.file.mimetype;
+        }
+        
+        // Insert plant with or without image
+        const [result] = await connection.execute(
+            'INSERT INTO plants (plant_name, scientific_name, description, image_data, image_mime_type) VALUES (?, ?, ?, ?, ?)',
+            [plant_name, scientific_name, description, imageData, imageMimeType]
+        );
+        
+        connection.release();
+        
+        res.json({ 
+            success: true, 
+            message: 'Plant added successfully',
+            plant_id: result.insertId,
+            image_url: imageMimeType ? `/api/get-plant-image/${result.insertId}` : null
+        });
+    } catch (error) {
+        console.error('Add plant error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/update-plant', plantImageUpload.single('plantImage'), async (req, res) => {
+    try {
+        const { plant_id, plant_name, scientific_name, description } = req.body;
+        const connection = await pool.getConnection();
+        
+        // Check if image file was uploaded
+        if (req.file) {
+            // Update plant with new image
+            await connection.execute(
+                'UPDATE plants SET plant_name = ?, scientific_name = ?, description = ?, image_data = ?, image_mime_type = ? WHERE plant_id = ?',
+                [plant_name, scientific_name, description, req.file.buffer, req.file.mimetype, plant_id]
+            );
+        } else {
+            // Update plant without changing image
+            await connection.execute(
+                'UPDATE plants SET plant_name = ?, scientific_name = ?, description = ? WHERE plant_id = ?',
+                [plant_name, scientific_name, description, plant_id]
+            );
+        }
+        
+        connection.release();
+        
+        res.json({ 
+            success: true, 
+            message: 'Plant updated successfully',
+            plant_id: plant_id
+        });
+    } catch (error) {
+        console.error('Update plant error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/delete-plant', async (req, res) => {
+    try {
+        const { plant_id } = req.body;
+        const connection = await pool.getConnection();
+        
+        // First delete any associated documents
+        await connection.execute(
+            'DELETE FROM documents WHERE related_plant_id = ?', 
+            [plant_id]
+        );
+        
+        // Then delete the plant
+        await connection.execute(
+            'DELETE FROM plants WHERE plant_id = ?', 
+            [plant_id]
+        );
+        
+        connection.release();
+        
+        res.json({ 
+            success: true, 
+            message: 'Plant and associated documents deleted successfully'
+        });
+    } catch (error) {
+        console.error('Delete plant error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// New Route to upload plant image
+app.post('/api/upload-plant-image', plantImageUpload.single('plantImage'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'No image file uploaded' 
+            });
+        }
+
+        const { buffer, mimetype, size } = req.file;
+        const plant_id = req.body.plant_id;
+        
+        // Validate the file size (5MB limit)
+        if (size > 5 * 1024 * 1024) {
+            return res.status(400).json({
+                success: false,
+                message: 'Image file size exceeds the 5MB limit'
+            });
+        }
+        
+        // Validate MIME type to ensure it's an image
+        if (!mimetype.startsWith('image/')) {
+            return res.status(400).json({
+                success: false,
+                message: 'Only image files are allowed'
+            });
+        }
+        
+        if (!plant_id) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Plant ID is required' 
+            });
+        }
+        
+        const connection = await pool.getConnection();
+        
+        // Check if plant exists
+        const [plants] = await connection.execute(
+            'SELECT plant_id FROM plants WHERE plant_id = ?',
+            [plant_id]
+        );
+        
+        if (plants.length === 0) {
+            connection.release();
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Plant not found' 
+            });
+        }
+        
+        // Update plant with image data
+        await connection.execute(
+            'UPDATE plants SET image_data = ?, image_mime_type = ? WHERE plant_id = ?',
+            [buffer, mimetype, plant_id]
+        );
+        
+        connection.release();
+        
+        res.json({ 
+            success: true, 
+            message: 'Plant image uploaded successfully',
+            image_url: `/api/get-plant-image/${plant_id}`
+        });
+    } catch (error) {
+        console.error('Plant image upload error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message 
+        });
+    }
+});
+
+// Get plant image by ID
+app.get('/api/get-plant-image/:id', async (req, res) => {
+    try {
+        const plant_id = req.params.id;
+        const connection = await pool.getConnection();
+        
+        const [plants] = await connection.execute(
+            'SELECT image_data, image_mime_type FROM plants WHERE plant_id = ? AND image_data IS NOT NULL',
+            [plant_id]
+        );
+        
+        connection.release();
+        
+        if (plants.length === 0 || !plants[0].image_data) {
+            return res.status(404).send('Image not found');
+        }
+        
+        const plant = plants[0];
+        
+        // Set appropriate headers
+        res.setHeader('Content-Type', plant.image_mime_type);
+        res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
+        res.setHeader('Content-Length', plant.image_data.length);
+        
+        // Send the image data
+        res.send(plant.image_data);
+        
+    } catch (error) {
+        console.error('Get plant image error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Route สำหรับตรวจสอบสถานะการล็อกอิน
 app.get('/users/check-auth', async (req, res) => {
     const token = req.cookies.token;
@@ -503,12 +641,10 @@ app.get('/users/check-auth', async (req, res) => {
     }
 });
 
-// เพิ่ม route สำหรับเปลี่ยนทิศทางการเข้าถึงหน้าแรก
 app.get('/', (req, res) => {
     res.redirect('/login.html');
 });
 
-// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

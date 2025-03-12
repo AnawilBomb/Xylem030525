@@ -1,0 +1,183 @@
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal.show {
+    opacity: 1;
+}
+
+.modal-content {
+    background-color: var(--bg-secondary);
+    margin: 5% auto;
+    padding: 30px;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+    position: relative;
+}
+
+.modal.show .modal-content {
+    transform: translateY(0);
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    color: var(--text-secondary);
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close:hover {
+    color: var(--text-primary);
+}
+
+.modal h2 {
+    margin-top: 0;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+#drop-area {
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    padding: 25px;
+    text-align: center;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+
+#drop-area.highlight {
+    border-color: var(--accent-primary);
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+#drop-area p {
+    color: var(--text-secondary);
+    margin-top: 0;
+}
+
+#fileElem {
+    display: none;
+}
+
+#drop-area label.button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: var(--accent-primary);
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#drop-area label.button:hover {
+    background-color: #3a4eea;
+    transform: translateY(-2px);
+}
+
+#gallery {
+    margin-top: 15px;
+}
+
+#gallery div {
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#gallery div span:first-child {
+    font-size: 24px;
+}
+
+#progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin-top: 20px;
+    overflow: hidden;
+}
+
+#progress-bar::-webkit-progress-bar {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+#progress-bar::-webkit-progress-value {
+    background-color: var(--accent-primary);
+    border-radius: 4px;
+}
+
+#progress-bar::-moz-progress-bar {
+    background-color: var(--accent-primary);
+    border-radius: 4px;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.modal-buttons button {
+    padding: 10px 20px;
+}
+
+.modal-buttons button:first-child {
+    background-color: var(--accent-primary);
+    color: white;
+}
+
+.modal-buttons button:last-child {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.preview-image {
+    max-width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+}
